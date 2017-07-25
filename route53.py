@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 import functools
 import textwrap
+import boto3
 from errbot import BotPlugin, botcmd
 
 
@@ -40,7 +41,19 @@ class Route53(BotPlugin):
         }
         return config
 
-    @botcmd
+    def get_client(self):
+        """Return CloudFront client by boto3.
+        This client is configuret by plugin configuration.
+        """
+        return boto3.client(
+            'route53',
+            aws_access_key_id=self.config['access_id'],
+            aws_secret_access_key=self.config['secret_key'],
+        )
+
+    @botcmd(template='zone_list')
     @require_iam
     def route53_list(self, msg, args):
-        return "It is a stub"
+        client = self.get_client()
+        result = client.list_hosted_zones()
+        return {'zones': result['HostedZones']}

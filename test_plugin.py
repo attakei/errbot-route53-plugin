@@ -1,4 +1,6 @@
 # -*- coding:utf8 -*-
+from unittest.mock import patch
+import time
 
 
 pytest_plugins = [
@@ -19,13 +21,27 @@ def test_installed_plugin(testbot):
 
 
 def test_not_configured(testbot):
-    testbot.push_message('!route53 list')
+    testbot.push_message('!route53_list')
     assert 'This plugin is until not configured' \
         in testbot.pop_message()
 
 
 def test_list_configured(testbot):
     inject_dummy_conf(testbot)
-    testbot.push_message('!route53 list')
-    assert 'This plugin is until not configured' \
-        not in testbot.pop_message()
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.list_hosted_zones.return_value = {
+            'HostedZones': [
+                {
+                    'Id': 'zone-id',
+                    'Name': 'example.com',
+                    'Config': {
+                        'Comment': 'My zone',
+                        'PrivateZone': False,
+                    },
+                    'ResourceRecordSetCount': 123
+                },
+            ],
+        }
+        testbot.push_message('!route53 list')
+        assert 'example.com' in testbot.pop_message()
