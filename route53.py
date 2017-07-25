@@ -13,6 +13,7 @@ def require_iam(f):
                 or not bot.config.get('access_id', None) \
                 or not bot.config.get('secret_key', None):
             return bot.not_configured()
+        return f(bot, msg, args)
     return _require_iam
 
 
@@ -29,7 +30,17 @@ class Route53(BotPlugin):
             """
         return textwrap.dedent(message).format(self.bot_config.BOT_PREFIX)
 
+    def get_configuration_template(self):
+        """
+        Defines the configuration structure this plugin supports.
+        """
+        config = {
+            'access_id': None,
+            'secret_key': None,
+        }
+        return config
+
     @botcmd
     @require_iam
     def route53_list(self, msg, args):
-        pass
+        return "It is a stub"
