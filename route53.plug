@@ -1,0 +1,12 @@
+[Core]
+name = route53
+module = route53
+
+[Documentation]
+description = Control Route 53
+
+[Python]
+version = 3
+
+[Errbot]
+
