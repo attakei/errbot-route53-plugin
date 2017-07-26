@@ -69,5 +69,5 @@ class Route53(BotPlugin):
         if not self.has_iam():
             return self.not_configured()
         client = self.get_client()
-        result = client.list_resource_record_sets()
+        result = client.list_resource_record_sets(HostedZoneId=zone_id)
         return {'records': result['ResourceRecordSets']}
