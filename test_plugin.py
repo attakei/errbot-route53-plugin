@@ -48,6 +48,7 @@ def test_list_configured(testbot):
 
 
 def test_detail_not_found(testbot):
+    import textwrap
     inject_dummy_conf(testbot)
     with patch('boto3.client') as Client:
         client = Client.return_value
@@ -65,4 +66,9 @@ def test_detail_not_found(testbot):
             ],
         }
         testbot.push_message('!route53 zone ABCDEF')
-        assert 'a.example.com : A ' in testbot.pop_message()
+        expect = """
+            - a.example.com : A
+                - 127.0.0.1
+            """
+        assert testbot.bot.md.convert(textwrap.dedent(expect)) \
+            in testbot.pop_message()
