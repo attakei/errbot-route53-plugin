@@ -45,3 +45,24 @@ def test_list_configured(testbot):
         }
         testbot.push_message('!route53 list')
         assert 'example.com' in testbot.pop_message()
+
+
+def test_detail_not_found(testbot):
+    inject_dummy_conf(testbot)
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.list_resource_record_sets.return_value = {
+            'ResourceRecordSets': [
+                {
+                    'Name': 'a.example.com',
+                    'Type': 'A',
+                    'ResourceRecords': [
+                        {
+                            'Value': '127.0.0.1'
+                        },
+                    ],
+                },
+            ],
+        }
+        testbot.push_message('!route53 zone ABCDEF')
+        assert 'a.example.com : A ' in testbot.pop_message()

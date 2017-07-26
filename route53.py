@@ -2,9 +2,10 @@
 import functools
 import textwrap
 import boto3
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, botcmd, arg_botcmd
 
 
+# TODO: Duplicated inmplements
 def require_iam(f):
     """Deforator for bot command required IAM user key pair
     """
@@ -22,6 +23,11 @@ class Route53(BotPlugin):
     """
     Control Route 53
     """
+    # TODO: Duplicated inmplements
+    def has_iam(self):
+        return self.config \
+                and self.config.get('access_id', False) \
+                and self.config.get('secret_key', False)
 
     def not_configured(self):
         message = """
@@ -57,3 +63,11 @@ class Route53(BotPlugin):
         client = self.get_client()
         result = client.list_hosted_zones()
         return {'zones': result['HostedZones']}
+
+    @arg_botcmd('zone_id', template='zone_detail')
+    def route53_zone(self, msg, zone_id):
+        if not self.has_iam():
+            return self.not_configured()
+        client = self.get_client()
+        result = client.list_resource_record_sets()
+        return {'records': result['ResourceRecordSets']}
