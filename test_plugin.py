@@ -47,7 +47,7 @@ def test_list_configured(testbot):
         assert 'example.com' in testbot.pop_message()
 
 
-def test_detail_not_found(testbot):
+def test_detail_single(testbot):
     import textwrap
     inject_dummy_conf(testbot)
     with patch('boto3.client') as Client:
@@ -70,5 +70,5 @@ def test_detail_not_found(testbot):
             - a.example.com : A
                 - 127.0.0.1
             """
-        assert testbot.bot.md.convert(textwrap.dedent(expect)) \
+        assert textwrap.dedent(expect).strip() \
             in testbot.pop_message()
