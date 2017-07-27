@@ -99,3 +99,37 @@ def test_detail_multi_values(testbot):
             """
         assert textwrap.dedent(expect).strip() \
             in testbot.pop_message()
+
+
+def test_detail_multi_records(testbot):
+    import textwrap
+    inject_dummy_conf(testbot)
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.list_resource_record_sets.return_value = {
+            'ResourceRecordSets': [
+                {
+                    'Name': 'a.example.com',
+                    'Type': 'A',
+                    'ResourceRecords': [
+                        {'Value': '127.0.0.1'},
+                    ],
+                },
+                {
+                    'Name': 'b.example.com',
+                    'Type': 'A',
+                    'ResourceRecords': [
+                        {'Value': '127.0.0.2'},
+                    ],
+                },
+            ],
+        }
+        testbot.push_message('!route53 zone ABCDEF')
+        expect = """
+            - a.example.com : A
+                - 127.0.0.1
+            - b.example.com : A
+                - 127.0.0.2
+            """
+        assert textwrap.dedent(expect).strip() \
+            in testbot.pop_message()
