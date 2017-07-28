@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 from unittest.mock import patch
+import textwrap
 import time
 
 
@@ -133,3 +134,34 @@ def test_detail_multi_records(testbot):
             """
         assert textwrap.dedent(expect).strip() \
             in testbot.pop_message()
+
+
+def test_create(testbot):
+    inject_dummy_conf(testbot)
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.create_hosted_zone.return_value = {
+            'HostedZone': {
+                'Id': 'ABCDEF',
+                'Name': 'example.com',
+                'CallerReference': 'string',
+            },
+            'DelegationSet': {
+                'Id': 'string',
+                'CallerReference': 'string',
+                'NameServers': [
+                    '127.0.0.1',
+                    '127.0.0.2',
+                ]
+            },
+        }
+        testbot.push_message('!route53 create example.com')
+        expect = """
+            - 127.0.0.1
+            - 127.0.0.2
+            """
+        actually = testbot.pop_message()
+        assert testbot.bot.md.convert(textwrap.dedent(expect)) \
+            in actually
+        assert 'example.com' in actually
+        assert 'ABCDEF' in actually

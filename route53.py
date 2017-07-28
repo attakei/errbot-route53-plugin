@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 import functools
 import textwrap
+import datetime
 import boto3
 from errbot import BotPlugin, botcmd, arg_botcmd
 
@@ -71,3 +72,18 @@ class Route53(BotPlugin):
         client = self.get_client()
         result = client.list_resource_record_sets(HostedZoneId=zone_id)
         return {'records': result['ResourceRecordSets']}
+
+    @arg_botcmd('hostname', template='zone_created')
+    def route53_create(self, msg, hostname):
+        if not self.has_iam():
+            return self.not_configured()
+        client = self.get_client()
+        result = client.create_hosted_zone(
+            Name=hostname,
+            CallerReference='new_zone-{}'.format(
+                datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
+            ),
+        )
+        zone_info = result['HostedZone']
+        zone_info['NameServers'] = result['DelegationSet']['NameServers']
+        return {'zone_info': zone_info}
