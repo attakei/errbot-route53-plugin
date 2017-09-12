@@ -87,3 +87,10 @@ class Route53(BotPlugin):
         zone_info = result['HostedZone']
         zone_info['NameServers'] = result['DelegationSet']['NameServers']
         return {'zone_info': zone_info}
+
+    @arg_botcmd('record_value')
+    @arg_botcmd('record_type')
+    @arg_botcmd('name')
+    @arg_botcmd('zone_id')
+    def route53_add_record(self, msg, zone_id, name, record_type, record_value):
+        return 'Now creating'
