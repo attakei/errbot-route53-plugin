@@ -87,3 +87,35 @@ class Route53(BotPlugin):
         zone_info = result['HostedZone']
         zone_info['NameServers'] = result['DelegationSet']['NameServers']
         return {'zone_info': zone_info}
+
+    @arg_botcmd('record_value')
+    @arg_botcmd('record_type')
+    @arg_botcmd('name')
+    @arg_botcmd('zone_id')
+    def route53_add_record(self, msg, zone_id, name, record_type, record_value):
+        if record_type not in ['A', 'CNAME']:
+            return 'Only A or CNAME record'
+        if not self.has_iam():
+            return self.not_configured()
+        zone_id = zone_id[12:]
+        client = self.get_client()
+        result = client.change_resource_record_sets(
+            HostedZoneId=zone_id,
+            ChangeBatch={
+                'Comment': 'Add new record',
+                'Changes': [
+                    {
+                        'Action': 'CREATE',
+                        'ResourceRecordSet': {
+                            'Name': name,
+                            'Type': record_type,
+                            'TTL': 300,
+                            'ResourceRecords': [
+                                {'Value': record_value}
+                            ],
+                        }
+                    }
+                ]
+            }
+        )
+        return 'Now creating'

@@ -165,3 +165,20 @@ def test_create(testbot):
             in actually
         assert 'example.com' in actually
         assert 'ABCDEF' in actually
+
+
+def test_add_record(testbot):
+    inject_dummy_conf(testbot)
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.change_resource_record_sets.return_value = {
+            'ChangeInfo': {
+                'Id': 'ABCDEF',
+                'Name': 'example.com',
+                'CallerReference': 'string',
+            },
+        }
+        testbot.push_message('!route53 add_record ABCDEF www.example.com A 127.0.0.1')
+        actually = testbot.pop_message()
+        assert 'Now creating' \
+            in actually
