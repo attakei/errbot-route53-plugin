@@ -93,6 +93,8 @@ class Route53(BotPlugin):
     @arg_botcmd('name')
     @arg_botcmd('zone_id')
     def route53_add_record(self, msg, zone_id, name, record_type, record_value):
+        if record_type not in ['A', 'CNAME']:
+            return 'Only A or CNAME record'
         if not self.has_iam():
             return self.not_configured()
         zone_id = zone_id[12:]
